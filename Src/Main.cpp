@@ -6,6 +6,14 @@
 
 #include "Client.h"
 
+void_t help()
+{
+  Console::printf("list - Show list of tables.\n");
+  Console::printf("query - Query data from selected table.\n");
+  Console::printf("select <num> - Select a table for further requests.\n");
+  Console::printf("exit - Terminate the session.\n");
+}
+
 int_t main(int_t argc, char_t* argv[])
 {
   String password("root");
@@ -61,6 +69,8 @@ int_t main(int_t argc, char_t* argv[])
 
     if(cmd == "exit")
       break;
+    else if(cmd == "help")
+      help();
     else if(cmd == "list")
       client.list();
     else if(cmd == "select")
