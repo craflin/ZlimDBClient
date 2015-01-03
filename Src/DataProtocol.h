@@ -47,6 +47,7 @@ public:
     invalidLogin,
     tableAlreadyExists,
     couldNotOpenFile,
+    couldNotReadFile,
   };
 
   static String getErrorString(Error error)
@@ -62,6 +63,7 @@ public:
     case invalidLogin: return "Invalid login data.";
     case tableAlreadyExists: return "Table already exists.";
     case couldNotOpenFile: return "Could not open file.";
+    case couldNotReadFile: return "Could not read from file.";
     default: return "Unknown error.";
     }
   }
@@ -71,7 +73,8 @@ public:
   {
     enum
     {
-      partial = 0x01,
+      fragmented = 0x01,
+      compressed = 0x02,
     };
 
     uint8_t flags;

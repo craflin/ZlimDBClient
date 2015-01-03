@@ -2,6 +2,8 @@
 #include <nstd/Console.h>
 #include <nstd/Error.h>
 
+#include <lz4.h>
+
 #include "Tools/Sha256.h"
 
 #include "Client.h"
@@ -132,7 +134,7 @@ uint8_t Client::process()
   Buffer buffer;
   Socket* selectedSocket;
   uint_t events;
-  for(;;)
+  while(socket.isOpen())
   {
     if(!selector.select(selectedSocket, events, 100 * 1000))
       continue;
@@ -167,6 +169,7 @@ uint8_t Client::process()
       }
     }
   }
+  return false;
 }
 
 void_t Client::handleData(const DataProtocol::Header& header)
@@ -219,14 +222,14 @@ void_t Client::handleAction(const Action& action)
           Console::printf("%6llu: %s\n", table->id, (const char_t*)tableName);
         }
 
-        if(!(header->flags & DataProtocol::Header::partial))
+        if(!(header->flags & DataProtocol::Header::fragmented))
           break;
       }
     }
     break;
   case selectAction:
     selectedTable = action.param;
-    Console::printf("selected table %u\n", action.param);
+    //Console::printf("selected table %u\n", action.param);
     break;
   case queryAction:
     {
@@ -235,6 +238,7 @@ void_t Client::handleAction(const Action& action)
       queryRequest.size = sizeof(queryRequest);
       queryRequest.tableId = selectedTable;
       queryRequest.type = DataProtocol::QueryRequest::all;
+      queryRequest.param = 0;
       queryRequest.requestId = nextRequestId++;
       if(!sendRequest(queryRequest))
       {
@@ -250,18 +254,40 @@ void_t Client::handleAction(const Action& action)
           return;
         }
         const DataProtocol::Header* header = (const DataProtocol::Header*)(const byte_t*)buffer;
-        if(header->messageType != DataProtocol::queryResponse)
+        if(header->messageType != DataProtocol::queryResponse || header->size < sizeof(*header) + sizeof(uint16_t))
         {
-          error = "Receive invalid query response.";
+          error = "Received invalid query response.";
           Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
           return;
         }
 
-        for(const DataProtocol::Entity* entity = (const DataProtocol::Entity*)(header + 1), * end = (const DataProtocol::Entity*)((const byte_t*)header + header->size); entity < end; entity = (const DataProtocol::Entity*)((const byte_t*)entity + entity->size))
+        const byte_t* data;
+        size_t dataSize;
+        Buffer buffer;
+        if(header->flags & DataProtocol::Header::compressed)
+        {
+          dataSize = *(const uint16_t*)(header + 1);
+          uint16_t compressedSize = header->size - (sizeof(*header) + sizeof(uint16_t));
+          buffer.resize(dataSize);
+          if(LZ4_decompress_safe((const char*)(header + 1) + sizeof(uint16_t), (char*)(byte_t*)buffer, compressedSize, dataSize) != dataSize)
+          {
+            error = "Decompression failed.";
+            Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+            return;
+          }
+          data = buffer;
+        }
+        else
+        {
+          data = (const byte_t*)(header + 1);
+          dataSize = header->size - sizeof(*header);
+        }
+
+        for(const DataProtocol::Entity* entity = (const DataProtocol::Entity*)data, * end = (const DataProtocol::Entity*)((const byte_t*)data + dataSize); entity < end; entity = (const DataProtocol::Entity*)((const byte_t*)entity + entity->size))
         {
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
         }
-        if(!(header->flags & DataProtocol::Header::partial))
+        if(!(header->flags & DataProtocol::Header::fragmented))
           break;
       }
     }
@@ -297,6 +323,7 @@ bool_t Client::receiveData(Buffer& buffer)
       error = Error::getErrorString();
     else
       error = "Connection closed by peer.";
+    socket.close();
     return false;
   }
   const DataProtocol::Header* header = (const DataProtocol::Header*)(const byte_t*)buffer;
@@ -315,6 +342,7 @@ bool_t Client::receiveData(Buffer& buffer)
         error = Error::getErrorString();
       else
         error = "Connection closed by peer.";
+      socket.close();
       return false;
     }
   }
@@ -323,7 +351,7 @@ bool_t Client::receiveData(Buffer& buffer)
 
 bool_t Client::receiveResponse(uint32_t requestId, Buffer& buffer)
 {
-  for(;;)
+  while(socket.isOpen())
   {
     if(!receiveData(buffer))
       return false;
@@ -340,4 +368,5 @@ bool_t Client::receiveResponse(uint32_t requestId, Buffer& buffer)
     else
       handleData(*header);
   }
+  return false;
 }

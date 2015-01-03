@@ -11,7 +11,7 @@ void_t help()
   Console::printf("list - Show list of tables.\n");
   Console::printf("query - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
-  Console::printf("exit - Terminate the session.\n");
+  Console::printf("exit - Quit the session.\n");
 }
 
 int_t main(int_t argc, char_t* argv[])
@@ -67,7 +67,7 @@ int_t main(int_t argc, char_t* argv[])
     Word::split(result, args);
     String cmd = args.isEmpty() ? String() : args.front();
 
-    if(cmd == "exit")
+    if(cmd == "exit" || cmd == "quit")
       break;
     else if(cmd == "help")
       help();
