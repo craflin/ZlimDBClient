@@ -92,20 +92,30 @@ void_t Client::disconnect()
   selectedTable = 0;
 }
 
-void_t Client::list()
+void_t Client::listTables()
 {
   actionMutex.lock();
   Action& action = actions.append(Action());
-  action.type = listAction;
+  action.type = listTablesAction;
   actionMutex.unlock();
   interrupt();
 }
 
-void_t Client::select(uint32_t tableId)
+void_t Client::createTable(const String& name)
 {
   actionMutex.lock();
   Action& action = actions.append(Action());
-  action.type = selectAction;
+  action.type = createTableAction;
+  action.paramStr = name;
+  actionMutex.unlock();
+  interrupt();
+}
+
+void_t Client::selectTable(uint32_t tableId)
+{
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = selectTableAction;
   action.param = tableId;
   actionMutex.unlock();
   interrupt();
@@ -118,6 +128,11 @@ void_t Client::query()
   action.type = queryAction;
   actionMutex.unlock();
   interrupt();
+}
+
+void_t Client::add()
+{
+  // todo: ???
 }
 
 uint_t Client::threadProc(void_t* param)
@@ -186,7 +201,7 @@ void_t Client::handleAction(const Action& action)
 {
   switch(action.type)
   {
-  case listAction:
+  case listTablesAction:
     {
       DataProtocol::QueryRequest queryRequest;
       queryRequest.messageType = DataProtocol::queryRequest;
@@ -219,6 +234,7 @@ void_t Client::handleAction(const Action& action)
         {
           String tableName;
           DataProtocol::getString(*header, *table, sizeof(DataProtocol::Table), table->nameSize, tableName);
+          tableName.resize(tableName.length());
           Console::printf("%6llu: %s\n", table->id, (const char_t*)tableName);
         }
 
@@ -227,19 +243,44 @@ void_t Client::handleAction(const Action& action)
       }
     }
     break;
-  case selectAction:
+  case selectTableAction:
     selectedTable = action.param;
     //Console::printf("selected table %u\n", action.param);
+    break;
+  case createTableAction:
+    {
+      const String& tableName = action.paramStr;
+      Buffer buffer;
+      buffer.resize(sizeof(DataProtocol::AddRequest) + sizeof(DataProtocol::Table) + tableName.length());
+      DataProtocol::AddRequest* addRequest = (DataProtocol::AddRequest*)(byte_t*)buffer;
+      DataProtocol::setHeader(*addRequest, DataProtocol::addRequest, buffer.size(), nextRequestId++);
+      addRequest->tableId = DataProtocol::tablesTable;
+      DataProtocol::Table* table = (DataProtocol::Table*)(addRequest + 1);
+      DataProtocol::setEntityHeader(*table, 0, 0, sizeof(*table) + tableName.length());
+      table->flags = 0;
+      DataProtocol::setString(*table, table->nameSize, sizeof(*table), tableName);
+      if(!sendRequest(*addRequest))
+      {
+        Console::errorf("error: Could not send add request: %s\n", (const char_t*)error);
+        return;
+      }
+      if(!receiveResponse(addRequest->requestId, buffer))
+      {
+        Console::errorf("error: Could not receive add response: %s\n", (const char_t*)error);
+        return;
+      }
+    }
+    // todo
     break;
   case queryAction:
     {
       DataProtocol::QueryRequest queryRequest;
       queryRequest.messageType = DataProtocol::queryRequest;
       queryRequest.size = sizeof(queryRequest);
+      queryRequest.requestId = nextRequestId++;
       queryRequest.tableId = selectedTable;
       queryRequest.type = DataProtocol::QueryRequest::all;
       queryRequest.param = 0;
-      queryRequest.requestId = nextRequestId++;
       if(!sendRequest(queryRequest))
       {
         Console::errorf("error: Could not send query: %s\n", (const char_t*)error);

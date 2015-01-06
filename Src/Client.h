@@ -22,21 +22,25 @@ public:
 
   void_t disconnect();
 
-  void_t list();
-  void_t select(uint32_t tableId);
+  void_t listTables();
+  void_t createTable(const String& name);
+  void_t selectTable(uint32_t tableId);
   void_t query();
+  void_t add();
 
 private:
   enum ActionType
   {
-    listAction,
-    selectAction,
+    listTablesAction,
+    createTableAction,
+    selectTableAction,
     queryAction,
   };
   struct Action
   {
     ActionType type;
     uint32_t param;
+    String paramStr;
   };
 
 private:

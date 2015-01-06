@@ -9,6 +9,7 @@
 void_t help()
 {
   Console::printf("list - Show list of tables.\n");
+  Console::printf("create <name> - Create a new table.\n");
   Console::printf("query - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
   Console::printf("exit - Quit the session.\n");
@@ -72,7 +73,17 @@ int_t main(int_t argc, char_t* argv[])
     else if(cmd == "help")
       help();
     else if(cmd == "list")
-      client.list();
+      client.listTables();
+    else if(cmd == "create")
+    {
+      if(args.size() < 2)
+        Console::errorf("error: Missing argument: create <name>\n");
+      else
+      {
+        String name = *(++args.begin());
+        client.createTable(name);
+      }
+    }
     else if(cmd == "select")
     {
       if(args.size() < 2)
@@ -80,7 +91,7 @@ int_t main(int_t argc, char_t* argv[])
       else
       {
         String num = *(++args.begin());
-        client.select(num.toUInt());
+        client.selectTable(num.toUInt());
       }
     }
     else if(cmd == "query")
