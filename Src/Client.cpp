@@ -1,6 +1,7 @@
 
 #include <nstd/Console.h>
 #include <nstd/Error.h>
+#include <nstd/Time.h>
 
 #include <lz4.h>
 
@@ -130,9 +131,14 @@ void_t Client::query()
   interrupt();
 }
 
-void_t Client::add()
+void_t Client::add(const String& value)
 {
-  // todo: ???
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = addAction;
+  action.paramStr = value;
+  actionMutex.unlock();
+  interrupt();
 }
 
 uint_t Client::threadProc(void_t* param)
@@ -270,7 +276,6 @@ void_t Client::handleAction(const Action& action)
         return;
       }
     }
-    // todo
     break;
   case queryAction:
     {
@@ -330,6 +335,29 @@ void_t Client::handleAction(const Action& action)
         }
         if(!(header->flags & DataProtocol::Header::fragmented))
           break;
+      }
+    }
+    break;
+  case addAction:
+    {
+      const String& value = action.paramStr;
+      Buffer buffer;
+      buffer.resize(sizeof(DataProtocol::AddRequest) + sizeof(DataProtocol::Table) + value.length());
+      DataProtocol::AddRequest* addRequest = (DataProtocol::AddRequest*)(byte_t*)buffer;
+      DataProtocol::setHeader(*addRequest, DataProtocol::addRequest, buffer.size(), nextRequestId++);
+      addRequest->tableId = selectedTable;
+      DataProtocol::Table* entity = (DataProtocol::Table*)(addRequest + 1);
+      DataProtocol::setEntityHeader(*entity, 0, Time::time(), sizeof(DataProtocol::Table) + value.length());
+      DataProtocol::setString(*entity, entity->nameSize, sizeof(*entity), value);
+      if(!sendRequest(*addRequest))
+      {
+        Console::errorf("error: Could not send add request: %s\n", (const char_t*)error);
+        return;
+      }
+      if(!receiveResponse(addRequest->requestId, buffer))
+      {
+        Console::errorf("error: Could not receive add response: %s\n", (const char_t*)error);
+        return;
       }
     }
     break;

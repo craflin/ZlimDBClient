@@ -98,6 +98,16 @@ int_t main(int_t argc, char_t* argv[])
     {
       client.query();
     }
+    else if(cmd == "add")
+    {
+      if(args.size() < 2)
+        Console::errorf("error: Missing argument: select <num>\n");
+      else
+      {
+        String value = *(++args.begin());
+        client.add(value);
+      }
+    }
     else if(!cmd.isEmpty())
       Console::errorf("error: Unkown command: %s\n", (const char_t*)result);
   }

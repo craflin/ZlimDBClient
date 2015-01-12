@@ -26,7 +26,7 @@ public:
   void_t createTable(const String& name);
   void_t selectTable(uint32_t tableId);
   void_t query();
-  void_t add();
+  void_t add(const String& value);
 
 private:
   enum ActionType
@@ -35,6 +35,7 @@ private:
     createTableAction,
     selectTableAction,
     queryAction,
+    addAction,
   };
   struct Action
   {
