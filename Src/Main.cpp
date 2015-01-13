@@ -12,6 +12,8 @@ void_t help()
   Console::printf("create <name> - Create a new table.\n");
   Console::printf("query - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
+  Console::printf("add <value> - Add string data to selected table.\n");
+  Console::printf("addData <len> - Add <len> bytes to selected table.\n");
   Console::printf("exit - Quit the session.\n");
 }
 
@@ -61,8 +63,8 @@ int_t main(int_t argc, char_t* argv[])
   }
   for(;;)
   {
-    String result = prompt.getLine("> ");
-    Console::printf(String("> ") + result + "\n");
+    String result = prompt.getLine("zlimdb> ");
+    Console::printf(String("zlimdb> ") + result + "\n");
 
     List<String> args;
     Word::split(result, args);
@@ -108,8 +110,21 @@ int_t main(int_t argc, char_t* argv[])
         client.add(value);
       }
     }
+    else if(cmd == "addData")
+    {
+      if(args.size() < 2)
+        Console::errorf("error: Missing argument: select <num>\n");
+      else
+      {
+        size_t len = (++args.begin())->toUInt();
+        String value;
+        value.resize(len);
+        Memory::fill((char_t*)value, 'a', len);
+        client.add(value);
+      }
+    }
     else if(!cmd.isEmpty())
-      Console::errorf("error: Unkown command: %s\n", (const char_t*)result);
+      Console::errorf("error: Unkown command: %s\n", (const char_t*)cmd);
   }
   client.disconnect();
   return 0;
