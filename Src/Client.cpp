@@ -315,7 +315,7 @@ void_t Client::handleAction(const Action& action)
           dataSize = *(const uint16_t*)(header + 1);
           uint16_t compressedSize = header->size - (sizeof(*header) + sizeof(uint16_t));
           buffer.resize(dataSize);
-          if(LZ4_decompress_safe((const char*)(header + 1) + sizeof(uint16_t), (char*)(byte_t*)buffer, compressedSize, dataSize) != dataSize)
+          if(dataSize > 0 && LZ4_decompress_safe((const char*)(header + 1) + sizeof(uint16_t), (char*)(byte_t*)buffer, compressedSize, dataSize) != dataSize)
           {
             error = "Decompression failed.";
             Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
