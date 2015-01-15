@@ -117,10 +117,12 @@ int_t main(int_t argc, char_t* argv[])
       else
       {
         size_t len = (++args.begin())->toUInt();
+        size_t count = args.size() < 3 ? 1 : (++(++args.begin()))->toUInt();
         String value;
         value.resize(len);
         Memory::fill((char_t*)value, 'a', len);
-        client.add(value);
+        for(size_t i = 0; i < count; ++i)
+          client.add(value);
       }
     }
     else if(!cmd.isEmpty())
