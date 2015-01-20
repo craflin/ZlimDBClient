@@ -128,9 +128,9 @@ public:
     enum Type
     {
       all,
-      byId,
       sinceId,
       sinceTime,
+      byId,
     };
 
     Type type;
@@ -138,22 +138,22 @@ public:
     uint64_t param;
   };
 
-  struct SubscribeRequest
+  struct SubscribeRequest : public Header
   {
-    char_t channel[33];
-    uint64_t maxAge;
-    uint64_t sinceId;
-  };
-  struct SubscribeResponse
-  {
-    uint64_t tableId;
-    //uint32_t flags;
-  };
-  struct UnsubscribeRequest
-  {
+    enum Type
+    {
+      all,
+      sinceId,
+      sinceTime,
+      byId,
+    };
+
+    Type type;
     uint32_t tableId;
+    uint64_t param;
   };
-  struct UnsubscribeResponse
+
+  struct UnsubscribeRequest : public Header
   {
     uint32_t tableId;
   };
