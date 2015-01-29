@@ -141,6 +141,15 @@ void_t Client::add(const String& value)
   interrupt();
 }
 
+void_t Client::subscribe()
+{
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = subscribeAction;
+  actionMutex.unlock();
+  interrupt();
+}
+
 uint_t Client::threadProc(void_t* param)
 {
   Client* client = (Client*)param;
@@ -278,32 +287,45 @@ void_t Client::handleAction(const Action& action)
     }
     break;
   case queryAction:
+  case subscribeAction:
     {
-      DataProtocol::QueryRequest queryRequest;
-      queryRequest.messageType = DataProtocol::queryRequest;
-      queryRequest.size = sizeof(queryRequest);
-      queryRequest.requestId = nextRequestId++;
-      queryRequest.tableId = selectedTable;
-      queryRequest.type = DataProtocol::QueryRequest::all;
-      queryRequest.param = 0;
-      if(!sendRequest(queryRequest))
+      DataProtocol::SubscribeRequest subscribeRequest;
+      subscribeRequest.messageType = action.type == queryAction ? DataProtocol::queryRequest : DataProtocol::subscribeRequest;
+      subscribeRequest.size = sizeof(subscribeRequest);
+      subscribeRequest.requestId = nextRequestId++;
+      subscribeRequest.tableId = selectedTable;
+      subscribeRequest.type = DataProtocol::SubscribeRequest::all;
+      subscribeRequest.param = 0;
+      if(!sendRequest(subscribeRequest))
       {
-        Console::errorf("error: Could not send query: %s\n", (const char_t*)error);
+        if(action.type == queryAction)
+          Console::errorf("error: Could not send query: %s\n", (const char_t*)error);
+        else
+          Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)error);
         return;
       }
       Buffer buffer;
       for(;;)
       {
-        if(!receiveResponse(queryRequest.requestId, buffer))
+        if(!receiveResponse(subscribeRequest.requestId, buffer))
         {
-          Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+          if(action.type == queryAction)
+            Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+          else
+            Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)error);
           return;
         }
         const DataProtocol::Header* header = (const DataProtocol::Header*)(const byte_t*)buffer;
         if(header->messageType != DataProtocol::queryResponse || header->size < sizeof(*header) + sizeof(uint16_t))
         {
-          error = "Received invalid query response.";
-          Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+          if(action.type == queryAction)
+            error = "Received invalid query response.";
+          else
+            error = "Received invalid subscribe response.";
+          if(action.type == queryAction)
+            Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+          else
+            Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)error);
           return;
         }
 
@@ -318,7 +340,10 @@ void_t Client::handleAction(const Action& action)
           if(dataSize > 0 && LZ4_decompress_safe((const char*)(header + 1) + sizeof(uint16_t), (char*)(byte_t*)buffer, compressedSize, dataSize) != dataSize)
           {
             error = "Decompression failed.";
-            Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+            if(action.type == queryAction)
+              Console::errorf("error: Could not receive query response: %s\n", (const char_t*)error);
+            else
+              Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)error);
             return;
           }
           data = buffer;

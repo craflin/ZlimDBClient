@@ -14,6 +14,7 @@ void_t help()
   Console::printf("select <num> - Select a table for further requests.\n");
   Console::printf("add <value> - Add string data to selected table.\n");
   Console::printf("addData <len> - Add <len> bytes to selected table.\n");
+  Console::printf("subscribe - Subscribe to selected table.\n");
   Console::printf("exit - Quit the session.\n");
 }
 
@@ -124,6 +125,10 @@ int_t main(int_t argc, char_t* argv[])
         for(size_t i = 0; i < count; ++i)
           client.add(value);
       }
+    }
+    else if(cmd == "subscribe")
+    {
+      client.subscribe();
     }
     else if(!cmd.isEmpty())
       Console::errorf("error: Unkown command: %s\n", (const char_t*)cmd);

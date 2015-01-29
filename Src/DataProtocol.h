@@ -49,6 +49,7 @@ public:
     couldNotOpenFile,
     couldNotReadFile,
     couldNotWriteFile,
+    subscriptionNotFound,
     invalidData,
   };
 
@@ -67,6 +68,7 @@ public:
     case couldNotOpenFile: return "Could not open file.";
     case couldNotReadFile: return "Could not read from file.";
     case couldNotWriteFile: return "Could not write to file.";
+    case subscriptionNotFound: return "Subscription not found.";
     case invalidData: return "Invalid data.";
     default: return "Unknown error.";
     }
@@ -123,21 +125,6 @@ public:
     uint32_t tableId;
   };
 
-  struct QueryRequest : public Header
-  {
-    enum Type
-    {
-      all,
-      sinceId,
-      sinceTime,
-      byId,
-    };
-
-    Type type;
-    uint32_t tableId;
-    uint64_t param;
-  };
-
   struct SubscribeRequest : public Header
   {
     enum Type
@@ -145,6 +132,20 @@ public:
       all,
       sinceId,
       sinceTime,
+    };
+
+    Type type;
+    uint32_t tableId;
+    uint64_t param;
+  };
+
+  struct QueryRequest : public SubscribeRequest
+  {
+    enum Type
+    {
+      all = SubscribeRequest::all,
+      sinceId = SubscribeRequest::sinceId,
+      sinceTime = SubscribeRequest::sinceTime,
       byId,
     };
 

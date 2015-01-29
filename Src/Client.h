@@ -27,6 +27,7 @@ public:
   void_t selectTable(uint32_t tableId);
   void_t query();
   void_t add(const String& value);
+  void_t subscribe();
 
 private:
   enum ActionType
@@ -36,6 +37,7 @@ private:
     selectTableAction,
     queryAction,
     addAction,
+    subscribeAction,
   };
   struct Action
   {
