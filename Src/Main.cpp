@@ -131,7 +131,7 @@ int_t main(int_t argc, char_t* argv[])
       client.subscribe();
     }
     else if(!cmd.isEmpty())
-      Console::errorf("error: Unkown command: %s\n", (const char_t*)cmd);
+      Console::errorf("error: Unknown command: %s\n", (const char_t*)cmd);
   }
   client.disconnect();
   return 0;
