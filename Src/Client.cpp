@@ -398,7 +398,6 @@ void_t Client::interrupt()
 bool_t Client::sendRequest(DataProtocol::Header& header)
 {
   header.flags = 0;
-  header.requestId = 0;
   if(socket.send((const byte_t*)&header, header.size) != header.size)
   {
     error = Error::getErrorString();
