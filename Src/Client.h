@@ -6,14 +6,14 @@
 #include <nstd/List.h>
 #include <nstd/Buffer.h>
 
-#include "Tools/Socket.h"
+#include "DataProtocol.h" // todo: remove this
 
-#include "DataProtocol.h"
+typedef struct _zlimdb zlimdb;
 
 class Client
 {
 public:
-  Client(): nextRequestId(1), selectedTable(0) {}
+  Client() : zdb(0), selectedTable(0) {}
   ~Client() {disconnect();}
 
   String getLastError() const {return error;}
@@ -48,25 +48,18 @@ private:
 
 private:
   static uint_t threadProc(void_t* param);
+  static void_t zlimdbCallback(void_t* userData, zlimdb_message_type message_type, void_t* data, uint16_t size);
 
   uint8_t process();
 
-  void_t handleData(const DataProtocol::Header& header);
   void_t handleAction(const Action& action);
-
-  void_t interrupt();
-  bool_t sendRequest(DataProtocol::Header& header);
-  bool_t receiveData(Buffer& buffer);
-  bool_t receiveResponse(uint32_t requestId, Buffer& buffer);
 
 private:
   String error;
+  zlimdb* zdb;
+  volatile bool keepRunning;
   Thread thread;
-  Socket socket;
-  Socket eventPipeRead;
-  Socket eventPipeWrite;
   Mutex actionMutex;
   List<Action> actions;
-  uint32_t nextRequestId;
   uint32_t selectedTable;
 };
