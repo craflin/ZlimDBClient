@@ -13,12 +13,12 @@ typedef struct _zlimdb zlimdb;
 class Client
 {
 public:
-  Client() : zdb(0), selectedTable(0) {}
-  ~Client() {disconnect();}
+  Client();
+  ~Client();
 
   String getLastError() const {return error;}
 
-  bool_t connect(const String& user, const String& password, const String& address);
+  bool_t connect(const String& userName, const String& password, const String& address);
 
   void_t disconnect();
 
@@ -32,6 +32,7 @@ public:
 private:
   enum ActionType
   {
+    quitAction,
     listTablesAction,
     createTableAction,
     selectTableAction,

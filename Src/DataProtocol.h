@@ -21,7 +21,7 @@ public:
     size_t end = offset + length;
     if(end > entity.size || (const byte_t*)&entity + end > (const byte_t*)data + size)
       return false;
-    result.attach((const char_t*)&entity + offset, size);
+    result.attach((const char_t*)&entity + offset, length);
     return true;
   }
 

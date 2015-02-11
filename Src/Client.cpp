@@ -2,11 +2,22 @@
 #include <nstd/Console.h>
 #include <nstd/Error.h>
 #include <nstd/Time.h>
+#include <nstd/Debug.h>
 
-#include <lz4.h>
 #include <zlimdbclient.h>
 
 #include "Client.h"
+
+Client::Client() : zdb(0), selectedTable(0)
+{
+  VERIFY(zlimdb_init() == 0);
+}
+
+Client::~Client()
+{
+  disconnect();
+  VERIFY(zlimdb_cleanup() == 0);
+}
 
 bool_t Client::connect(const String& user, const String& password, const String& address)
 {
@@ -14,6 +25,27 @@ bool_t Client::connect(const String& user, const String& password, const String&
 
   // create connection
   zdb = zlimdb_create(zlimdbCallback, this);
+  if(!zdb)
+  {
+    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    return false;
+  }
+  uint16_t port = 0;
+  String host = address;
+  const char_t* colon = address.find(':');
+  if(colon)
+  {
+    port = String::toUInt(colon + 1);
+    host = address.substr(0, colon - (const char_t*)address);
+  }
+  if(zlimdb_connect(zdb, host, port, user, password) != 0)
+  {
+    if(zlimdb_errno() == zlimdb_local_error_socket)
+      error = Error::getErrorString();
+    else
+      error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    return false;
+  }
 
   // start receive thread
   keepRunning = true;
@@ -120,18 +152,26 @@ uint8_t Client::process()
       {
       case zlimdb_local_error_interrupted:
         {
-          Action action;
-          actionMutex.lock();
-          action = actions.front();
-          actions.removeFront();
-          actionMutex.unlock();
-          handleAction(action);
+          Action action = {quitAction};
+          bool actionEmpty = true;
+          do
+          {
+            actionMutex.lock();
+            if(!actions.isEmpty())
+            {
+              action = actions.front();
+              actions.removeFront();
+              actionEmpty = actions.isEmpty();
+            }
+            actionMutex.unlock();
+            handleAction(action);
+          } while(!actionEmpty);
         }
         break;
       case zlimdb_local_error_timeout:
         break;
       default:
-        Console::errorf("error: Could not receive data: %s\n", zlimdb_strerror(zlimdb_errno()));
+        //Console::errorf("error: Could not receive data: %s\n", zlimdb_strerror(zlimdb_errno()));
         return 1;
       }
   return 0;
@@ -180,10 +220,10 @@ void_t Client::handleAction(const Action& action)
       zlimdb_table_entity* table = (zlimdb_table_entity*)(byte_t*)buffer;
       DataProtocol::setEntityHeader(table->entity, 0, 0, sizeof(*table) + tableName.length());
       table->flags = 0;
-      DataProtocol::setString(table->entity, table->name_size, sizeof(table), tableName);
+      DataProtocol::setString(table->entity, table->name_size, sizeof(*table), tableName);
       if(zlimdb_add(zdb, zlimdb_table_tables, (const byte_t*)buffer, buffer.size()) != 0)
       {
-        Console::errorf("error: Could not send add request: %s\n", (const char_t*)error);
+        Console::errorf("error: Could not send add request: %s\n",zlimdb_strerror(zlimdb_errno()));
         return;
       }
     }
@@ -246,7 +286,7 @@ void_t Client::handleAction(const Action& action)
       DataProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
       if(zlimdb_add(zdb, selectedTable, buffer, buffer.size()))
       {
-        Console::errorf("error: Could not send add request: %s\n", (const char_t*)error);
+        Console::errorf("error: Could not send add request: %s\n", zlimdb_strerror(zlimdb_errno()));
         return;
       }
     }
