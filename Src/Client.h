@@ -6,7 +6,7 @@
 #include <nstd/List.h>
 #include <nstd/Buffer.h>
 
-#include "DataProtocol.h" // todo: remove this
+#include <zlimdbprotocol.h>
 
 typedef struct _zlimdb zlimdb;
 

@@ -5,7 +5,7 @@
 
 #include <nstd/Base.h>
 
-class DataProtocol
+class ClientProtocol
 {
 public:
   //static bool_t getString(const Header& header, size_t offset, size_t size, String& result)

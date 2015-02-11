@@ -7,6 +7,7 @@
 #include <zlimdbclient.h>
 
 #include "Client.h"
+#include "ClientProtocol.h"
 
 Client::Client() : zdb(0), selectedTable(0)
 {
@@ -196,7 +197,7 @@ void_t Client::handleAction(const Action& action)
         for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
         {
           String tableName;
-          DataProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName);
+          ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName);
           tableName.resize(tableName.length()); // enfore NULL termination
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)tableName);
         }
@@ -218,9 +219,9 @@ void_t Client::handleAction(const Action& action)
       Buffer buffer;
       buffer.resize(sizeof(zlimdb_table_entity) + tableName.length());
       zlimdb_table_entity* table = (zlimdb_table_entity*)(byte_t*)buffer;
-      DataProtocol::setEntityHeader(table->entity, 0, 0, sizeof(*table) + tableName.length());
+      ClientProtocol::setEntityHeader(table->entity, 0, 0, sizeof(*table) + tableName.length());
       table->flags = 0;
-      DataProtocol::setString(table->entity, table->name_size, sizeof(*table), tableName);
+      ClientProtocol::setString(table->entity, table->name_size, sizeof(*table), tableName);
       if(zlimdb_add(zdb, zlimdb_table_tables, (const byte_t*)buffer, buffer.size()) != 0)
       {
         Console::errorf("error: Could not send add request: %s\n",zlimdb_strerror(zlimdb_errno()));
@@ -282,8 +283,8 @@ void_t Client::handleAction(const Action& action)
       Buffer buffer;
       buffer.resize(sizeof(zlimdb_table_entity) + value.length());
       zlimdb_table_entity* entity = (zlimdb_table_entity*)(const byte_t*)buffer;
-      DataProtocol::setEntityHeader(entity->entity, 0, Time::time(), sizeof(zlimdb_table_entity) + value.length());
-      DataProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
+      ClientProtocol::setEntityHeader(entity->entity, 0, Time::time(), sizeof(zlimdb_table_entity) + value.length());
+      ClientProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
       if(zlimdb_add(zdb, selectedTable, buffer, buffer.size()))
       {
         Console::errorf("error: Could not send add request: %s\n", zlimdb_strerror(zlimdb_errno()));
