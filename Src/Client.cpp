@@ -295,6 +295,20 @@ void_t Client::handleAction(const Action& action)
   }
 }
 
-void_t Client::zlimdbCallback(void_t* userData, zlimdb_message_type message_type, void_t* data, uint16_t size)
+void_t Client::zlimdbCallback(void_t* data, uint16_t size)
 {
+  const zlimdb_header* header = (const zlimdb_header*)data;
+  // todo: check sizes
+  switch(header->message_type)
+  {
+  case zlimdb_message_error_response:
+    {
+      const zlimdb_error_response* errorResponse = (const zlimdb_error_response*)header;
+      Console::printf("subscribe: errorResponse=%s (%d)\n", zlimdb_strerror(errorResponse->error), (int)errorResponse->error);
+    }
+    break;
+  default:
+    Console::printf("subscribe: messageType=%u\n", (uint_t)header->message_type);
+    break;
+  }
 }

@@ -6,8 +6,6 @@
 #include <nstd/List.h>
 #include <nstd/Buffer.h>
 
-#include <zlimdbprotocol.h>
-
 typedef struct _zlimdb zlimdb;
 
 class Client
@@ -49,7 +47,9 @@ private:
 
 private:
   static uint_t threadProc(void_t* param);
-  static void_t zlimdbCallback(void_t* userData, zlimdb_message_type message_type, void_t* data, uint16_t size);
+  static void_t zlimdbCallback(void_t* userData, void_t* data, uint16_t size) {((Client*)userData)->zlimdbCallback(data, size);}
+
+  void_t zlimdbCallback( void_t* data, uint16_t size);
 
   uint8_t process();
 
