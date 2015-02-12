@@ -216,17 +216,13 @@ void_t Client::handleAction(const Action& action)
   case createTableAction:
     {
       const String& tableName = action.paramStr;
-      Buffer buffer;
-      buffer.resize(sizeof(zlimdb_table_entity) + tableName.length());
-      zlimdb_table_entity* table = (zlimdb_table_entity*)(byte_t*)buffer;
-      ClientProtocol::setEntityHeader(table->entity, 0, 0, sizeof(*table) + tableName.length());
-      table->flags = 0;
-      ClientProtocol::setString(table->entity, table->name_size, sizeof(*table), tableName);
-      if(zlimdb_add(zdb, zlimdb_table_tables, (const byte_t*)buffer, buffer.size()) != 0)
+      uint64_t tableId;
+      if(zlimdb_add_table(zdb, tableName, &tableId) != 0)
       {
         Console::errorf("error: Could not send add request: %s\n",zlimdb_strerror(zlimdb_errno()));
         return;
       }
+      Console::printf("%6llu: %s\n", tableId, (const char_t*)tableName);
     }
     break;
   case queryAction:
