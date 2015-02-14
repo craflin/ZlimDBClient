@@ -26,6 +26,7 @@ public:
   void_t query();
   void_t add(const String& value);
   void_t subscribe();
+  void_t sync();
 
 private:
   enum ActionType
@@ -37,6 +38,7 @@ private:
     queryAction,
     addAction,
     subscribeAction,
+    syncAction,
   };
   struct Action
   {

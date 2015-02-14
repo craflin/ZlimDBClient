@@ -139,6 +139,17 @@ void_t Client::subscribe()
   zlimdb_interrupt(zdb);
 }
 
+void_t Client::sync()
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = syncAction;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
 uint_t Client::threadProc(void_t* param)
 {
   Client* client = (Client*)param;
@@ -286,6 +297,17 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send add request: %s\n", zlimdb_strerror(zlimdb_errno()));
         return;
       }
+    }
+    break;
+  case syncAction:
+    {
+      timestamp_t serverTime, tableTime;
+      if(zlimdb_sync(zdb, selectedTable, &serverTime, &tableTime))
+      {
+        Console::errorf("error: Could not send sync request: %s\n", zlimdb_strerror(zlimdb_errno()));
+        return;
+      }
+      Console::printf("serverTime=%llu, tableTime=%llu\n", serverTime, tableTime);
     }
     break;
   }

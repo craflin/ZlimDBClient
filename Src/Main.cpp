@@ -130,6 +130,10 @@ int_t main(int_t argc, char_t* argv[])
     {
       client.subscribe();
     }
+    else if(cmd == "sync")
+    {
+      client.sync();
+    }
     else if(!cmd.isEmpty())
       Console::errorf("error: Unknown command: %s\n", (const char_t*)cmd);
   }
