@@ -203,7 +203,7 @@ void_t Client::handleAction(const Action& action)
       Buffer buffer;
       buffer.resize(0xffff);
       uint32_t size;
-      while(zlimdb_get_response(zdb, buffer, buffer.size(), &size) == 0)
+      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
       {
         for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
         {
@@ -227,7 +227,7 @@ void_t Client::handleAction(const Action& action)
   case createTableAction:
     {
       const String& tableName = action.paramStr;
-      uint64_t tableId;
+      uint32_t tableId;
       if(zlimdb_add_table(zdb, tableName, &tableId) != 0)
       {
         Console::errorf("error: Could not send add request: %s\n",zlimdb_strerror(zlimdb_errno()));
@@ -246,7 +246,7 @@ void_t Client::handleAction(const Action& action)
       Buffer buffer;
       buffer.resize(0xffff);
       uint32_t size;
-      while(zlimdb_get_response(zdb, buffer, buffer.size(), &size) == 0)
+      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
       {
         for(const zlimdb_entity* entity = (const zlimdb_entity*)(const byte_t*)buffer, * end = (const zlimdb_entity*)((const byte_t*)entity + size); entity < end; entity = (const zlimdb_entity*)((const byte_t*)entity + entity->size))
         {
@@ -270,7 +270,7 @@ void_t Client::handleAction(const Action& action)
       Buffer buffer;
       buffer.resize(0xffff);
       uint32_t size;
-      while(zlimdb_get_response(zdb, buffer, buffer.size(), &size) == 0)
+      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
       {
         for(const zlimdb_entity* entity = (const zlimdb_entity*)(const byte_t*)buffer, * end = (const zlimdb_entity*)((const byte_t*)entity + size); entity < end; entity = (const zlimdb_entity*)((const byte_t*)entity + entity->size))
         {
@@ -292,7 +292,7 @@ void_t Client::handleAction(const Action& action)
       zlimdb_table_entity* entity = (zlimdb_table_entity*)(const byte_t*)buffer;
       ClientProtocol::setEntityHeader(entity->entity, 0, Time::time(), sizeof(zlimdb_table_entity) + value.length());
       ClientProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
-      if(zlimdb_add(zdb, selectedTable, buffer, buffer.size()))
+      if(zlimdb_add(zdb, selectedTable, &entity->entity))
       {
         Console::errorf("error: Could not send add request: %s\n", zlimdb_strerror(zlimdb_errno()));
         return;
