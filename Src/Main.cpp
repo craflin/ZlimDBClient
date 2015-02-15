@@ -8,6 +8,8 @@
 
 void_t help()
 {
+  Console::printf("listUsers - Show list of users.\n");
+  Console::printf("addUser <name> <pw> - Add a new user.\n");
   Console::printf("list - Show list of tables.\n");
   Console::printf("create <name> - Create a new table.\n");
   Console::printf("query - Query data from selected table.\n");
@@ -15,7 +17,7 @@ void_t help()
   //Console::printf("add <value> - Add string data to selected table.\n");
   //Console::printf("addData <len> - Add <len> bytes to selected table.\n");
   Console::printf("subscribe - Subscribe to selected table.\n");
-  Console::printf("sync - Get time synchronization data. of the selected table.\n");
+  Console::printf("sync - Get time synchronization data of the selected table.\n");
   Console::printf("exit - Quit the session.\n");
 }
 
@@ -76,6 +78,19 @@ int_t main(int_t argc, char_t* argv[])
       break;
     else if(cmd == "help")
       help();
+    else if(cmd == "listUsers")
+      client.listUsers();
+    else if(cmd == "addUser")
+    {
+      if(args.size() < 3)
+        Console::errorf("error: Missing arguments: addUser <name> <pw>\n");
+      else
+      {
+        String name = *(++args.begin());
+        String password = *(++(++args.begin()));
+        client.addUser(name, password);
+      }
+    }
     else if(cmd == "list")
       client.listTables();
     else if(cmd == "create")

@@ -5,6 +5,7 @@
 #include <nstd/Mutex.h>
 #include <nstd/List.h>
 #include <nstd/Buffer.h>
+#include <nstd/Variant.h>
 
 typedef struct _zlimdb zlimdb;
 
@@ -20,6 +21,8 @@ public:
 
   void_t disconnect();
 
+  void_t listUsers();
+  void_t addUser(const String& userName, const String& password);
   void_t listTables();
   void_t createTable(const String& name);
   void_t selectTable(uint32_t tableId);
@@ -32,6 +35,8 @@ private:
   enum ActionType
   {
     quitAction,
+    listUsersAction,
+    addUserAction,
     listTablesAction,
     createTableAction,
     selectTableAction,
@@ -43,8 +48,8 @@ private:
   struct Action
   {
     ActionType type;
-    uint32_t param;
-    String paramStr;
+    Variant param1;
+    Variant param2;
   };
 
 private:

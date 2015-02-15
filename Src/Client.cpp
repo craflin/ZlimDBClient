@@ -3,6 +3,7 @@
 #include <nstd/Error.h>
 #include <nstd/Time.h>
 #include <nstd/Debug.h>
+#include <nstd/File.h>
 
 #include <zlimdbclient.h>
 
@@ -67,6 +68,30 @@ void_t Client::disconnect()
   selectedTable = 0;
 }
 
+void_t Client::listUsers()
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = listUsersAction;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
+void_t Client::addUser(const String& userName, const String& password)
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = addUserAction;
+  action.param1 = userName;
+  action.param2 = password;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
 void_t Client::listTables()
 {
   if(!zdb)
@@ -85,7 +110,7 @@ void_t Client::createTable(const String& name)
   actionMutex.lock();
   Action& action = actions.append(Action());
   action.type = createTableAction;
-  action.paramStr = name;
+  action.param1 = name;
   actionMutex.unlock();
   zlimdb_interrupt(zdb);
 }
@@ -97,7 +122,7 @@ void_t Client::selectTable(uint32_t tableId)
   actionMutex.lock();
   Action& action = actions.append(Action());
   action.type = selectTableAction;
-  action.param = tableId;
+  action.param1 = tableId;
   actionMutex.unlock();
   zlimdb_interrupt(zdb);
 }
@@ -120,7 +145,7 @@ void_t Client::add(const String& value)
   actionMutex.lock();
   Action& action = actions.append(Action());
   action.type = addAction;
-  action.paramStr = value;
+  action.param1 = value;
   actionMutex.unlock();
   zlimdb_interrupt(zdb);
 }
@@ -190,6 +215,46 @@ void_t Client::handleAction(const Action& action)
 {
   switch(action.type)
   {
+  case listUsersAction:
+    {
+      if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
+      {
+        Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
+      Buffer buffer;
+      buffer.resize(0xffff);
+      uint32_t size;
+      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
+      {
+        for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
+        {
+          String tableName;
+          ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName);
+          if(!tableName.startsWith("users/"))
+            continue;
+          tableName.resize(tableName.length()); // enfore NULL termination
+          Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)File::basename(File::dirname(tableName)));
+        }
+      }
+      if(zlimdb_errno() != zlimdb_local_error_none)
+      {
+        Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
+    }
+    break;
+  case addUserAction:
+    {
+      const String userName = action.param1.toString();
+      const String password = action.param2.toString();
+      if(zlimdb_add_user(zdb, userName, password) != 0)
+      {
+        Console::errorf("error: Could not send add user request: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
+    }
+    break;
   case listTablesAction:
     {
       if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
@@ -218,12 +283,12 @@ void_t Client::handleAction(const Action& action)
     }
     break;
   case selectTableAction:
-    selectedTable = action.param;
+    selectedTable = action.param1.toUInt();
     //Console::printf("selected table %u\n", action.param);
     break;
   case createTableAction:
     {
-      const String& tableName = action.paramStr;
+      const String tableName = action.param1.toString();
       uint32_t tableId;
       if(zlimdb_add_table(zdb, tableName, &tableId) != 0)
       {
@@ -283,7 +348,7 @@ void_t Client::handleAction(const Action& action)
     break;
   case addAction:
     {
-      const String& value = action.paramStr;
+      const String value = action.param1.toString();
       Buffer buffer;
       buffer.resize(sizeof(zlimdb_table_entity) + value.length());
       zlimdb_table_entity* entity = (zlimdb_table_entity*)(const byte_t*)buffer;
