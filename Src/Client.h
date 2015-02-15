@@ -27,6 +27,7 @@ public:
   void_t createTable(const String& name);
   void_t selectTable(uint32_t tableId);
   void_t query();
+  void_t query(uint64_t sinceId);
   void_t add(const String& value);
   void_t subscribe();
   void_t sync();

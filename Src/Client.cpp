@@ -138,6 +138,18 @@ void_t Client::query()
   zlimdb_interrupt(zdb);
 }
 
+void_t Client::query(uint64_t sinceId)
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = queryAction;
+  action.param1 = sinceId;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
 void_t Client::add(const String& value)
 {
   if(!zdb)
@@ -300,7 +312,14 @@ void_t Client::handleAction(const Action& action)
     break;
   case queryAction:
     {
-      if(zlimdb_query(zdb, selectedTable, zlimdb_query_type_all, 0) != 0)
+      zlimdb_query_type queryType = zlimdb_query_type_all;
+      uint64_t param = 0;
+      if(!action.param1.isNull())
+      {
+        queryType = zlimdb_query_type_since_id;
+        param = action.param1.toUInt64();
+      }
+      if(zlimdb_query(zdb, selectedTable, queryType, param) != 0)
       {
         Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
         return;

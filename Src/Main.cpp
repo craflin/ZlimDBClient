@@ -12,7 +12,7 @@ void_t help()
   Console::printf("addUser <name> <pw> - Add a new user.\n");
   Console::printf("list - Show list of tables.\n");
   Console::printf("create <name> - Create a new table.\n");
-  Console::printf("query - Query data from selected table.\n");
+  Console::printf("query [<id>] - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
   //Console::printf("add <value> - Add string data to selected table.\n");
   //Console::printf("addData <len> - Add <len> bytes to selected table.\n");
@@ -115,7 +115,13 @@ int_t main(int_t argc, char_t* argv[])
     }
     else if(cmd == "query")
     {
-      client.query();
+      if(args.size() >= 2)
+      {
+        uint64_t id = (++args.begin())->toUInt64();
+        client.query(id);
+      }
+      else
+        client.query();
     }
     //else if(cmd == "add")
     //{
