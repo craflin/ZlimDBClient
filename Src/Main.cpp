@@ -12,9 +12,10 @@ void_t help()
   Console::printf("create <name> - Create a new table.\n");
   Console::printf("query - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
-  Console::printf("add <value> - Add string data to selected table.\n");
-  Console::printf("addData <len> - Add <len> bytes to selected table.\n");
+  //Console::printf("add <value> - Add string data to selected table.\n");
+  //Console::printf("addData <len> - Add <len> bytes to selected table.\n");
   Console::printf("subscribe - Subscribe to selected table.\n");
+  Console::printf("sync - Get time synchronization data. of the selected table.\n");
   Console::printf("exit - Quit the session.\n");
 }
 
@@ -101,31 +102,31 @@ int_t main(int_t argc, char_t* argv[])
     {
       client.query();
     }
-    else if(cmd == "add")
-    {
-      if(args.size() < 2)
-        Console::errorf("error: Missing argument: select <num>\n");
-      else
-      {
-        String value = *(++args.begin());
-        client.add(value);
-      }
-    }
-    else if(cmd == "addData")
-    {
-      if(args.size() < 2)
-        Console::errorf("error: Missing argument: select <num>\n");
-      else
-      {
-        size_t len = (++args.begin())->toUInt();
-        size_t count = args.size() < 3 ? 1 : (++(++args.begin()))->toUInt();
-        String value;
-        value.resize(len);
-        Memory::fill((char_t*)value, 'a', len);
-        for(size_t i = 0; i < count; ++i)
-          client.add(value);
-      }
-    }
+    //else if(cmd == "add")
+    //{
+    //  if(args.size() < 2)
+    //    Console::errorf("error: Missing argument: select <num>\n");
+    //  else
+    //  {
+    //    String value = *(++args.begin());
+    //    client.add(value);
+    //  }
+    //}
+    //else if(cmd == "addData")
+    //{
+    //  if(args.size() < 2)
+    //    Console::errorf("error: Missing argument: select <num>\n");
+    //  else
+    //  {
+    //    size_t len = (++args.begin())->toUInt();
+    //    size_t count = args.size() < 3 ? 1 : (++(++args.begin()))->toUInt();
+    //    String value;
+    //    value.resize(len);
+    //    Memory::fill((char_t*)value, 'a', len);
+    //    for(size_t i = 0; i < count; ++i)
+    //      client.add(value);
+    //  }
+    //}
     else if(cmd == "subscribe")
     {
       client.subscribe();
