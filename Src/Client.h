@@ -65,4 +65,7 @@ private:
   Mutex actionMutex;
   List<Action> actions;
   uint32_t selectedTable;
+
+private:
+  static String getZlimdbError();
 };
