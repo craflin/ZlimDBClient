@@ -391,6 +391,8 @@ void_t Client::handleAction(const Action& action)
       Console::printf("serverTime=%llu, tableTime=%llu\n", serverTime, tableTime);
     }
     break;
+  case quitAction:
+    break;
   }
 }
 
