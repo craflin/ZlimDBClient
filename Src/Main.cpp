@@ -30,6 +30,7 @@ int_t main(int_t argc, char_t* argv[])
     Process::Option options[] = {
         {'p', "password", Process::argumentFlag},
         {'u', "user", Process::argumentFlag},
+        {'h', "help", Process::optionFlag},
     };
     Process::Arguments arguments(argc, argv, options);
     int_t character;
@@ -53,7 +54,7 @@ int_t main(int_t argc, char_t* argv[])
         Console::errorf("Option %s required an argument.\n", (const char_t*)argument);
         return 1;
       default:
-        Console::errorf("Usage: %s [-u <user>] [-p <password>] [<address>]\n");
+        Console::errorf("Usage: %s [-u <user>] [-p <password>] [<address>]\n", argv[0]);
         return 1;
       }
   }
