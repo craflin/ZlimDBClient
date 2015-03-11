@@ -55,9 +55,9 @@ private:
 
 private:
   static uint_t threadProc(void_t* param);
-  static void_t zlimdbCallback(void_t* userData, void_t* data, uint16_t size) {((Client*)userData)->zlimdbCallback(data, size);}
+  static void_t zlimdbCallback(void_t* userData, const void_t* data) {((Client*)userData)->zlimdbCallback(data);}
 
-  void_t zlimdbCallback( void_t* data, uint16_t size);
+  void_t zlimdbCallback(const void_t* data);
 
   uint8_t process();
 

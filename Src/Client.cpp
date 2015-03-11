@@ -26,7 +26,7 @@ bool_t Client::connect(const String& user, const String& password, const String&
   disconnect();
 
   // create connection
-  zdb = zlimdb_create(zlimdbCallback, this);
+  zdb = zlimdb_create((void (*)(void*, const zlimdb_header*))(void (*)(void*, const void*))zlimdbCallback, this);
   if(!zdb)
   {
     error = getZlimdbError();
@@ -396,7 +396,7 @@ void_t Client::handleAction(const Action& action)
   }
 }
 
-void_t Client::zlimdbCallback(void_t* data, uint16_t size)
+void_t Client::zlimdbCallback(const void_t* data)
 {
   const zlimdb_header* header = (const zlimdb_header*)data;
   // todo: check sizes
