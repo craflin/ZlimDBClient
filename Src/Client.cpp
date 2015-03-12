@@ -307,7 +307,7 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError());
         return;
       }
-      Console::printf("%6llu: %s\n", tableId, (const char_t*)tableName);
+      Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
     }
     break;
   case queryAction:
