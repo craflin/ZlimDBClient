@@ -7,8 +7,9 @@
 
 #include <zlimdbclient.h>
 
+#include "Tools/ClientProtocol.h"
+
 #include "Client.h"
-#include "ClientProtocol.h"
 
 Client::Client() : zdb(0), selectedTable(0)
 {
