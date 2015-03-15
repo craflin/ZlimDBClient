@@ -243,7 +243,8 @@ void_t Client::handleAction(const Action& action)
         for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
         {
           String tableName;
-          ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName);
+          if(!ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
+            continue;
           if(!tableName.startsWith("users/"))
             continue;
           tableName.resize(tableName.length()); // enfore NULL termination
@@ -283,7 +284,8 @@ void_t Client::handleAction(const Action& action)
         for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
         {
           String tableName;
-          ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName);
+          if(!ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
+            continue;
           tableName.resize(tableName.length()); // enfore NULL termination
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)tableName);
         }
