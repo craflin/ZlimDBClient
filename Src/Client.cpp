@@ -235,22 +235,19 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
         return;
       }
-      Buffer buffer;
-      buffer.resize(0xffff);
-      uint32_t size;
-      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
-      {
-        for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
+      char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
+      uint32_t size = sizeof(buffer);
+      for(void_t* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
+        for(const zlimdb_table_entity* table; table = (const zlimdb_table_entity*)zlimdb_get_entity(sizeof(zlimdb_table_entity), &data, &size);)
         {
           String tableName;
-          if(!ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
+          if(!ClientProtocol::getString(table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
             continue;
           if(!tableName.startsWith("users/"))
             continue;
           tableName.resize(tableName.length()); // enfore NULL termination
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)File::basename(File::dirname(tableName)));
         }
-      }
       if(zlimdb_errno() != zlimdb_local_error_none)
       {
         Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
@@ -276,20 +273,17 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
         return;
       }
-      Buffer buffer;
-      buffer.resize(0xffff);
-      uint32_t size;
-      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
-      {
-        for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)(const byte_t*)buffer, * end = (const zlimdb_table_entity*)((const byte_t*)table + size); table < end; table = (const zlimdb_table_entity*)((const byte_t*)table + table->entity.size))
+      char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
+      uint32_t size = sizeof(buffer);
+      for(void* data = buffer; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
+        for(const zlimdb_table_entity* table; table = (const zlimdb_table_entity*)zlimdb_get_entity(sizeof(zlimdb_table_entity), &data, &size);)
         {
           String tableName;
-          if(!ClientProtocol::getString((const byte_t*)buffer, size, table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
+          if(!ClientProtocol::getString(table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
             continue;
           tableName.resize(tableName.length()); // enfore NULL termination
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)tableName);
         }
-      }
       if(zlimdb_errno() != zlimdb_local_error_none)
       {
         Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
@@ -327,16 +321,11 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
         return;
       }
-      Buffer buffer;
-      buffer.resize(0xffff);
-      uint32_t size;
-      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
-      {
-        for(const zlimdb_entity* entity = (const zlimdb_entity*)(const byte_t*)buffer, * end = (const zlimdb_entity*)((const byte_t*)entity + size); entity < end; entity = (const zlimdb_entity*)((const byte_t*)entity + entity->size))
-        {
+      char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
+      uint32_t size = sizeof(buffer);
+      for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
+        for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
-        }
-      }
       if(zlimdb_errno() != zlimdb_local_error_none)
       {
         Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
@@ -351,16 +340,11 @@ void_t Client::handleAction(const Action& action)
         Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)getZlimdbError());
         return;
       }
-      Buffer buffer;
-      buffer.resize(0xffff);
-      uint32_t size;
-      while(zlimdb_get_response(zdb, (zlimdb_entity*)(byte_t*)buffer, buffer.size(), &size) == 0)
-      {
-        for(const zlimdb_entity* entity = (const zlimdb_entity*)(const byte_t*)buffer, * end = (const zlimdb_entity*)((const byte_t*)entity + size); entity < end; entity = (const zlimdb_entity*)((const byte_t*)entity + entity->size))
-        {
+      char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
+      uint32_t size = sizeof(buffer);
+      for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
+        for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
-        }
-      }
       if(zlimdb_errno() != zlimdb_local_error_none)
       {
         Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)getZlimdbError());
