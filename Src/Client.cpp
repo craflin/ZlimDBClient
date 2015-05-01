@@ -116,6 +116,17 @@ void_t Client::createTable(const String& name)
   zlimdb_interrupt(zdb);
 }
 
+void_t Client::removeTable()
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = removeTableAction;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
 void_t Client::selectTable(uint32_t tableId)
 {
   if(!zdb)
@@ -305,6 +316,15 @@ void_t Client::handleAction(const Action& action)
         return;
       }
       Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
+    }
+    break;
+  case removeTableAction:
+    {
+      if(zlimdb_remove(zdb, zlimdb_table_tables, selectedTable) != 0)
+      {
+        Console::errorf("error: Could not send remove request: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
     }
     break;
   case queryAction:

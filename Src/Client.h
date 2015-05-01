@@ -25,6 +25,7 @@ public:
   void_t addUser(const String& userName, const String& password);
   void_t listTables();
   void_t createTable(const String& name);
+  void_t removeTable();
   void_t selectTable(uint32_t tableId);
   void_t query();
   void_t query(uint64_t sinceId);
@@ -40,6 +41,7 @@ private:
     addUserAction,
     listTablesAction,
     createTableAction,
+    removeTableAction,
     selectTableAction,
     queryAction,
     addAction,
