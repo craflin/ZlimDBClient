@@ -127,6 +127,17 @@ void_t Client::removeTable()
   zlimdb_interrupt(zdb);
 }
 
+void_t Client::clearTable()
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = clearTableAction;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
+
 void_t Client::selectTable(uint32_t tableId)
 {
   if(!zdb)
@@ -327,6 +338,15 @@ void_t Client::handleAction(const Action& action)
       }
     }
     break;
+  case clearTableAction:
+    {
+      if(zlimdb_clear(zdb, selectedTable) != 0)
+      {
+        Console::errorf("error: Could not send clear request: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
+    }
+    break;
   case queryAction:
     {
       zlimdb_query_type queryType = zlimdb_query_type_all;
@@ -380,7 +400,7 @@ void_t Client::handleAction(const Action& action)
       zlimdb_table_entity* entity = (zlimdb_table_entity*)(const byte_t*)buffer;
       ClientProtocol::setEntityHeader(entity->entity, 0, Time::time(), sizeof(zlimdb_table_entity) + value.length());
       ClientProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
-      if(zlimdb_add(zdb, selectedTable, &entity->entity))
+      if(zlimdb_add(zdb, selectedTable, &entity->entity, &entity->entity.id))
       {
         Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError());
         return;
@@ -402,6 +422,19 @@ void_t Client::handleAction(const Action& action)
     break;
   }
 }
+
+//void_t Client::enqueueAction(ActionType type, const Variant& param1 = Variant(), const Variant& param2 = Variant())
+//{
+//  if(!zdb)
+//    return;
+//  actionMutex.lock();
+//  Action& action = actions.append(Action());
+//  action.type = type;
+//  action.param1 = param1;
+//  action.param2 = param2;
+//  actionMutex.unlock();
+//  zlimdb_interrupt(zdb);
+//}
 
 void_t Client::zlimdbCallback(const void_t* data)
 {

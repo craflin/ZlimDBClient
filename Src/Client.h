@@ -26,6 +26,7 @@ public:
   void_t listTables();
   void_t createTable(const String& name);
   void_t removeTable();
+  void_t clearTable();
   void_t selectTable(uint32_t tableId);
   void_t query();
   void_t query(uint64_t sinceId);
@@ -42,6 +43,7 @@ private:
     listTablesAction,
     createTableAction,
     removeTableAction,
+    clearTableAction,
     selectTableAction,
     queryAction,
     addAction,
@@ -58,6 +60,8 @@ private:
 private:
   static uint_t threadProc(void_t* param);
   static void_t zlimdbCallback(void_t* userData, const void_t* data) {((Client*)userData)->zlimdbCallback(data);}
+
+  //void_t enqueueAction(ActionType type, const Variant& param1 = Variant(), const Variant& param2 = Variant());
 
   void_t zlimdbCallback(const void_t* data);
 

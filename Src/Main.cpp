@@ -13,6 +13,7 @@ void_t help()
   Console::printf("list - Show list of tables.\n");
   Console::printf("create <name> - Create a new table.\n");
   Console::printf("remove - Remove selected table.\n");
+  Console::printf("clear - Clear selected table.\n");
   Console::printf("query [<id>] - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
   //Console::printf("add <value> - Add string data to selected table.\n");
@@ -109,6 +110,10 @@ int_t main(int_t argc, char_t* argv[])
     {
       client.removeTable();
     }
+    else if(cmd == "clear")
+    {
+      client.clearTable();
+    }
     else if(cmd == "select")
     {
       if(args.size() < 2)
@@ -132,7 +137,7 @@ int_t main(int_t argc, char_t* argv[])
     //else if(cmd == "add")
     //{
     //  if(args.size() < 2)
-    //    Console::errorf("error: Missing argument: select <num>\n");
+    //    Console::errorf("error: Missing argument: add <value>\n");
     //  else
     //  {
     //    String value = *(++args.begin());
@@ -142,7 +147,7 @@ int_t main(int_t argc, char_t* argv[])
     //else if(cmd == "addData")
     //{
     //  if(args.size() < 2)
-    //    Console::errorf("error: Missing argument: select <num>\n");
+    //    Console::errorf("error: Missing argument: addData <len>\n");
     //  else
     //  {
     //    size_t len = (++args.begin())->toUInt();
