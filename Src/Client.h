@@ -27,6 +27,7 @@ public:
   void_t createTable(const String& name) {enqueueAction(createTableAction, name);}
   void_t removeTable() {enqueueAction(removeTableAction);}
   void_t clearTable() {enqueueAction(clearTableAction);}
+  void_t copyTable(const String& newName) {enqueueAction(copyTableAction, newName);}
   void_t selectTable(uint32_t tableId) {enqueueAction(selectTableAction, tableId);}
   void_t query() {enqueueAction(queryAction);}
   void_t query(uint64_t sinceId) {enqueueAction(queryAction, sinceId);}
@@ -44,6 +45,7 @@ private:
     createTableAction,
     removeTableAction,
     clearTableAction,
+    copyTableAction,
     selectTableAction,
     queryAction,
     addAction,

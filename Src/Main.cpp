@@ -14,6 +14,7 @@ void_t help()
   Console::printf("create <name> - Create a new table.\n");
   Console::printf("remove - Remove selected table.\n");
   Console::printf("clear - Clear selected table.\n");
+  Console::printf("copy <name> - Create copy of selected table.\n");
   Console::printf("query [<id>] - Query data from selected table.\n");
   Console::printf("select <num> - Select a table for further requests.\n");
   //Console::printf("add <value> - Add string data to selected table.\n");
@@ -113,6 +114,16 @@ int_t main(int_t argc, char_t* argv[])
     else if(cmd == "clear")
     {
       client.clearTable();
+    }
+    else if(cmd == "copy")
+    {
+      if(args.size() < 2)
+        Console::errorf("error: Missing argument: copy <name>\n");
+      else
+      {
+        String name = *(++args.begin());
+        client.copyTable(name);
+      }
     }
     else if(cmd == "select")
     {

@@ -209,6 +209,18 @@ void_t Client::handleAction(const Action& action)
       }
     }
     break;
+  case copyTableAction:
+    {
+      const String tableName = action.param1.toString();
+      uint32_t tableId;
+      if(zlimdb_copy_table(zdb, selectedTable, tableName, &tableId) != 0)
+      {
+        Console::errorf("error: Could not send copy request: %s\n", (const char_t*)getZlimdbError());
+        return;
+      }
+      Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
+    }
+    break;
   case queryAction:
     {
       zlimdb_query_type queryType = zlimdb_query_type_all;
