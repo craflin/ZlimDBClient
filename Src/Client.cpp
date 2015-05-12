@@ -69,144 +69,6 @@ void_t Client::disconnect()
   selectedTable = 0;
 }
 
-void_t Client::listUsers()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = listUsersAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::addUser(const String& userName, const String& password)
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = addUserAction;
-  action.param1 = userName;
-  action.param2 = password;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::listTables()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = listTablesAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::createTable(const String& name)
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = createTableAction;
-  action.param1 = name;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::removeTable()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = removeTableAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::clearTable()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = clearTableAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::selectTable(uint32_t tableId)
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = selectTableAction;
-  action.param1 = tableId;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::query()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = queryAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::query(uint64_t sinceId)
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = queryAction;
-  action.param1 = sinceId;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::add(const String& value)
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = addAction;
-  action.param1 = value;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::subscribe()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = subscribeAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
-void_t Client::sync()
-{
-  if(!zdb)
-    return;
-  actionMutex.lock();
-  Action& action = actions.append(Action());
-  action.type = syncAction;
-  actionMutex.unlock();
-  zlimdb_interrupt(zdb);
-}
-
 uint_t Client::threadProc(void_t* param)
 {
   Client* client = (Client*)param;
@@ -423,18 +285,18 @@ void_t Client::handleAction(const Action& action)
   }
 }
 
-//void_t Client::enqueueAction(ActionType type, const Variant& param1 = Variant(), const Variant& param2 = Variant())
-//{
-//  if(!zdb)
-//    return;
-//  actionMutex.lock();
-//  Action& action = actions.append(Action());
-//  action.type = type;
-//  action.param1 = param1;
-//  action.param2 = param2;
-//  actionMutex.unlock();
-//  zlimdb_interrupt(zdb);
-//}
+void_t Client::enqueueAction(ActionType type, const Variant& param1, const Variant& param2)
+{
+  if(!zdb)
+    return;
+  actionMutex.lock();
+  Action& action = actions.append(Action());
+  action.type = type;
+  action.param1 = param1;
+  action.param2 = param2;
+  actionMutex.unlock();
+  zlimdb_interrupt(zdb);
+}
 
 void_t Client::zlimdbCallback(const void_t* data)
 {
