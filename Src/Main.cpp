@@ -66,10 +66,7 @@ int_t main(int_t argc, char_t* argv[])
   Console::Prompt prompt;
   Client client;
   if(!client.connect(user, password, address))
-  {
-    Console::errorf("error: Could not establish connection: %s\n", (const char_t*)client.getLastError());
-    return 1;
-  }
+    return Console::errorf("error: Could not establish connection: %s\n", (const char_t*)client.getLastError()), 1;
   for(;;)
   {
     String result = prompt.getLine("zlimdb> ");

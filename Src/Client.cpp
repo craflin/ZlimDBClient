@@ -29,10 +29,7 @@ bool_t Client::connect(const String& user, const String& password, const String&
   // create connection
   zdb = zlimdb_create((void (*)(void*, const zlimdb_header*))(void (*)(void*, const void*))zlimdbCallback, this);
   if(!zdb)
-  {
-    error = getZlimdbError();
-    return false;
-  }
+    return error = getZlimdbError(), false;
   uint16_t port = 0;
   String host = address;
   const char_t* colon = address.find(':');
@@ -42,18 +39,12 @@ bool_t Client::connect(const String& user, const String& password, const String&
     host = address.substr(0, colon - (const char_t*)address);
   }
   if(zlimdb_connect(zdb, host, port, user, password) != 0)
-  {
-    error = getZlimdbError();
-    return false;
-  }
+    return error = getZlimdbError(), false;
 
   // start receive thread
   keepRunning = true;
   if(!thread.start(threadProc, this))
-  {
-    error = Error::getErrorString();
-    return false;
-  }
+    return error = Error::getErrorString(), false;
   return true;
 }
 
@@ -102,8 +93,7 @@ uint8_t Client::process()
       case zlimdb_local_error_timeout:
         break;
       default:
-        Console::errorf("error: Could not receive data: %s\n", (const char_t*)getZlimdbError());
-        return 1;
+        return Console::errorf("error: Could not receive data: %s\n", (const char_t*)getZlimdbError()), 1;
       }
   return 0;
 }
@@ -115,10 +105,7 @@ void_t Client::handleAction(const Action& action)
   case listUsersAction:
     {
       if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
-      {
-        Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
       for(void_t* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
@@ -133,10 +120,7 @@ void_t Client::handleAction(const Action& action)
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)File::basename(File::dirname(tableName)));
         }
       if(zlimdb_errno() != zlimdb_local_error_none)
-      {
-        Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case addUserAction:
@@ -144,19 +128,13 @@ void_t Client::handleAction(const Action& action)
       const String userName = action.param1.toString();
       const String password = action.param2.toString();
       if(zlimdb_add_user(zdb, userName, password) != 0)
-      {
-        Console::errorf("error: Could not send add user request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send add user request: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case listTablesAction:
     {
       if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
-      {
-        Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
       for(void* data = buffer; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
@@ -169,10 +147,7 @@ void_t Client::handleAction(const Action& action)
           Console::printf("%6llu: %s\n", table->entity.id, (const char_t*)tableName);
         }
       if(zlimdb_errno() != zlimdb_local_error_none)
-      {
-        Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case selectTableAction:
@@ -184,29 +159,20 @@ void_t Client::handleAction(const Action& action)
       const String tableName = action.param1.toString();
       uint32_t tableId;
       if(zlimdb_add_table(zdb, tableName, &tableId) != 0)
-      {
-        Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
     }
     break;
   case removeTableAction:
     {
       if(zlimdb_remove(zdb, zlimdb_table_tables, selectedTable) != 0)
-      {
-        Console::errorf("error: Could not send remove request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send remove request: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case clearTableAction:
     {
       if(zlimdb_clear(zdb, selectedTable) != 0)
-      {
-        Console::errorf("error: Could not send clear request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send clear request: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case copyTableAction:
@@ -214,10 +180,7 @@ void_t Client::handleAction(const Action& action)
       const String tableName = action.param1.toString();
       uint32_t tableId;
       if(zlimdb_copy_table(zdb, selectedTable, tableName, &tableId) != 0)
-      {
-        Console::errorf("error: Could not send copy request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send copy request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
     }
     break;
@@ -240,39 +203,27 @@ void_t Client::handleAction(const Action& action)
         param = action.param1.toUInt64();
       }
       if(zlimdb_query(zdb, selectedTable, queryType, param) != 0)
-      {
-        Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
       for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
         for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
       if(zlimdb_errno() != zlimdb_local_error_none)
-      {
-        Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case subscribeAction:
     {
       if(zlimdb_subscribe(zdb, selectedTable, zlimdb_query_type_all, 0) != 0)
-      {
-        Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
       for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0;)
         for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
       if(zlimdb_errno() != zlimdb_local_error_none)
-      {
-        Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case addAction:
@@ -284,20 +235,14 @@ void_t Client::handleAction(const Action& action)
       ClientProtocol::setEntityHeader(entity->entity, 0, Time::time(), sizeof(zlimdb_table_entity) + value.length());
       ClientProtocol::setString(entity->entity, entity->name_size, sizeof(*entity), value);
       if(zlimdb_add(zdb, selectedTable, &entity->entity, &entity->entity.id))
-      {
-        Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send add request: %s\n", (const char_t*)getZlimdbError()), (void)0;
     }
     break;
   case syncAction:
     {
       timestamp_t serverTime, tableTime;
       if(zlimdb_sync(zdb, selectedTable, &serverTime, &tableTime))
-      {
-        Console::errorf("error: Could not send sync request: %s\n", (const char_t*)getZlimdbError());
-        return;
-      }
+        return Console::errorf("error: Could not send sync request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       Console::printf("serverTime=%llu, tableTime=%llu\n", serverTime, tableTime);
     }
     break;
