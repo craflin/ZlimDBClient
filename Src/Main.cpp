@@ -12,6 +12,7 @@ void_t help()
   Console::printf("addUser <name> <pw> - Add a new user.\n");
   Console::printf("list - Show list of tables.\n");
   Console::printf("create <name> - Create a new table.\n");
+  Console::printf("find <name> - Find table id by name.\n");
   Console::printf("remove - Remove selected table.\n");
   Console::printf("clear - Clear selected table.\n");
   Console::printf("copy <name> - Create copy of selected table.\n");
@@ -123,6 +124,16 @@ int_t main(int_t argc, char_t* argv[])
       {
         String name = *(++args.begin());
         client.copyTable(name);
+      }
+    }
+    else if(cmd == "find")
+    {
+      if(args.size() < 2)
+        Console::errorf("error: Missing argument: find <name>\n");
+      else
+      {
+        String name = *(++args.begin());
+        client.findTable(name);
       }
     }
     else if(cmd == "select")
