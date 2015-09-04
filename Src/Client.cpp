@@ -243,7 +243,7 @@ void_t Client::handleAction(const Action& action)
       timestamp_t serverTime, tableTime;
       if(zlimdb_sync(zdb, selectedTable, &serverTime, &tableTime))
         return Console::errorf("error: Could not send sync request: %s\n", (const char_t*)getZlimdbError()), (void)0;
-      Console::printf("serverTime=%llu, tableTime=%llu\n", serverTime, tableTime);
+      Console::printf("serverTime=%llu, tableTime=%llu, offset=%lld\n", serverTime, tableTime, serverTime - tableTime);
     }
     break;
   case quitAction:
