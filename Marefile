@@ -25,16 +25,16 @@ targets = {
 
   include "Ext/libnstd/libnstd.mare"
   libnstd += {
-    folder = "Libraries"
+    folder = "Ext"
   }
 
   include "Ext/libzlimdbclient/libzlimdbclient.mare"
   libzlimdbclient += {
-    folder = "Libraries"
+    folder = "Ext"
   }
 
   liblz4 = cppStaticLibrary + {
-    folder = "Libraries"
+    folder = "Ext"
     includePaths = { "Ext/lz4" }
     root = { "Ext/lz4" }
     files = {

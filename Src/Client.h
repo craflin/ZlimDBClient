@@ -7,7 +7,7 @@
 #include <nstd/Buffer.h>
 #include <nstd/Variant.h>
 
-typedef struct _zlimdb zlimdb;
+typedef struct _zlimdb_ zlimdb;
 
 class Client
 {
