@@ -107,9 +107,10 @@ void_t Client::handleAction(const Action& action)
       if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
         return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
-      uint32_t size = sizeof(buffer);
-      for(void_t* data; zlimdb_get_response(zdb, data = buffer, &size) == 0; size = sizeof(buffer))
-        for(const zlimdb_table_entity* table; table = (const zlimdb_table_entity*)zlimdb_get_entity(sizeof(zlimdb_table_entity), &data, &size);)
+      while(zlimdb_get_response(zdb, (zlimdb_header*)buffer, ZLIMDB_MAX_MESSAGE_SIZE) == 0)
+        for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)zlimdb_get_first_entity((zlimdb_header*)buffer, sizeof(zlimdb_table_entity));
+            table;
+            table = (const zlimdb_table_entity*)zlimdb_get_next_entity((zlimdb_header*)buffer, sizeof(zlimdb_table_entity), &table->entity))
         {
           String tableName;
           if(!ClientProtocol::getString(table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
@@ -136,9 +137,10 @@ void_t Client::handleAction(const Action& action)
       if(zlimdb_query(zdb, zlimdb_table_tables, zlimdb_query_type_all, 0) != 0)
         return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
-      uint32_t size = sizeof(buffer);
-      for(void* data = buffer; zlimdb_get_response(zdb, data = buffer, &size) == 0; size = sizeof(buffer))
-        for(const zlimdb_table_entity* table; table = (const zlimdb_table_entity*)zlimdb_get_entity(sizeof(zlimdb_table_entity), &data, &size);)
+      while(zlimdb_get_response(zdb, (zlimdb_header*)buffer, ZLIMDB_MAX_MESSAGE_SIZE) == 0)
+        for(const zlimdb_table_entity* table = (const zlimdb_table_entity*)zlimdb_get_first_entity((zlimdb_header*)buffer, sizeof(zlimdb_table_entity));
+            table;
+            table = (const zlimdb_table_entity*)zlimdb_get_next_entity((zlimdb_header*)buffer, sizeof(zlimdb_table_entity), &table->entity))
         {
           String tableName;
           if(!ClientProtocol::getString(table->entity, sizeof(zlimdb_table_entity), table->name_size, tableName))
@@ -205,9 +207,10 @@ void_t Client::handleAction(const Action& action)
       if(zlimdb_query(zdb, selectedTable, queryType, param) != 0)
         return Console::errorf("error: Could not send query: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
-      uint32_t size = sizeof(buffer);
-      for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0; size = sizeof(buffer))
-        for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
+      while(zlimdb_get_response(zdb, (zlimdb_header*)buffer, ZLIMDB_MAX_MESSAGE_SIZE) == 0)
+        for(const zlimdb_entity* entity = zlimdb_get_first_entity((zlimdb_header*)buffer, sizeof(zlimdb_entity));
+            entity;
+            entity = zlimdb_get_next_entity((zlimdb_header*)buffer, sizeof(zlimdb_entity), entity))
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
       if(zlimdb_errno() != zlimdb_local_error_none)
         return Console::errorf("error: Could not receive query response: %s\n", (const char_t*)getZlimdbError()), (void)0;
@@ -219,8 +222,10 @@ void_t Client::handleAction(const Action& action)
         return Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
-      for(void* data; zlimdb_get_response(zdb, data = buffer, &size) == 0; size = sizeof(buffer))
-        for(const zlimdb_entity* entity; entity = zlimdb_get_entity(sizeof(zlimdb_entity), &data, &size);)
+      while(zlimdb_get_response(zdb, (zlimdb_header*)buffer, ZLIMDB_MAX_MESSAGE_SIZE) == 0)
+        for(const zlimdb_entity* entity = zlimdb_get_first_entity((zlimdb_header*)buffer, sizeof(zlimdb_entity));
+            entity;
+            entity = zlimdb_get_next_entity((zlimdb_header*)buffer, sizeof(zlimdb_entity), entity))
           Console::printf("id=%llu, size=%u, time=%llu\n", entity->id, (uint_t)entity->size, entity->time);
       if(zlimdb_errno() != zlimdb_local_error_none)
         return Console::errorf("error: Could not receive subscribe response: %s\n", (const char_t*)getZlimdbError()), (void)0;
