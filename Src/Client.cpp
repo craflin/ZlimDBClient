@@ -191,7 +191,7 @@ void_t Client::handleAction(const Action& action)
       const String tableName = action.param1.toString();
       uint32_t tableId;
       if(zlimdb_find_table(zdb, tableName, &tableId) != 0)
-        return Console::errorf("error: Could not send copy request: %s\n", (const char_t*)getZlimdbError()), (void)0;
+        return Console::errorf("error: Could not send find request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       Console::printf("%6u: %s\n", tableId, (const char_t*)tableName);
     }
     break;
