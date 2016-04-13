@@ -218,7 +218,7 @@ void_t Client::handleAction(const Action& action)
     break;
   case subscribeAction:
     {
-      if(zlimdb_subscribe(zdb, selectedTable, zlimdb_query_type_all, 0) != 0)
+      if(zlimdb_subscribe(zdb, selectedTable, zlimdb_query_type_all, 0, zlimdb_subscribe_flag_none) != 0)
         return Console::errorf("error: Could not send subscribe request: %s\n", (const char_t*)getZlimdbError()), (void)0;
       char_t buffer[ZLIMDB_MAX_MESSAGE_SIZE];
       uint32_t size = sizeof(buffer);
